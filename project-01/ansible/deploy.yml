@@ -1,0 +1,29 @@
+---
+ - name: Deploy nginx on docker
+   hosts: webserver
+   become: yes
+   tasks:
+     - name: Ensure Docker is installed
+       yum:
+         name: docker.io
+         state: present 
+     - name: Ensure Docker is running
+       service:
+         name: docker
+         state: started 
+         enabled: yes
+     - name: Pull latest Docker image
+       docker_image:
+         name: nasim1039/my-nginx
+         tag: latest
+         state: present
+     - name: Start the docker container
+       docker_container:
+        name: nginx
+        image: nasim1039/my-nginx
+        state: started
+        restart_policy: always
+        ports:
+          - "80:80"
+
+   

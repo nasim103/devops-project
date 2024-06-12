@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    stages {
+        stage ('checkout') {
+            steps {
+                git https://github.com/nasim103/devops-project.git
+            }
+        }
+
+        stage ('Build') {
+            steps {
+                cd docker
+                sh docker -t my-nginx:latest .
+            }
+        }
+
+        stage ('Test') {
+            steps {
+                cd docker
+                sh 'docker run --rm my-nginx:latest nginx -t'
+            }
+        }
+        stage ('push') {
+            steps {
+                cd docker
+                sh 'docker tag my-nginx:latest nasim1039/my-nginx:latest'
+                sh 'docker push nasim1039/my-nginx:latest'
+            }
+        }
+
+        stage ('Deploy') {
+            steps {
+                sshagent(['project']) {
+                    sh 'ansible-playbook -i inventory/hosts deploy.yml'
+                }
+            }
+        }
+
+    }
+}
