@@ -4,9 +4,9 @@
    become: yes
    tasks:
      - name: Ensure Docker is installed
-       yum:
-         name: docker.io
-         state: present 
+       dnf:
+         name: docker
+         state: latest
      - name: Ensure Docker is running
        service:
          name: docker

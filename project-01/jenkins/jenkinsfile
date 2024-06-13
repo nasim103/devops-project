@@ -4,14 +4,14 @@ pipeline {
     stages {
         stage ('checkout') {
             steps {
-                git https://github.com/nasim103/devops-project.git
+                git 'https://github.com/nasim103/devops-project.git'
             }
         }
 
         stage ('Build') {
             steps {
                 cd docker
-                sh docker -t my-nginx:latest .
+                sh 'docker -t my-nginx:latest .'
             }
         }
 
@@ -32,7 +32,8 @@ pipeline {
         stage ('Deploy') {
             steps {
                 sshagent(['devops']) {
-                    sh 'ansible-playbook -i inventory/hosts deploy.yml'
+                    cd docker
+                    sh 'ansible-playbook  deploy.yml'
                 }
             }
         }
