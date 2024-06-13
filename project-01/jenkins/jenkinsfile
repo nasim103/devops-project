@@ -11,7 +11,7 @@ pipeline {
         stage ('Build') {
             steps {
                 script {
-                    try{
+                    try {
                         //Switching to docker directory
                         dir('project-01') {
                             dir('docker') {
@@ -19,7 +19,7 @@ pipeline {
                                 sh 'docker build -t my-nginx:latest .'
                             }
                         }       
-                        
+                         
                     }
                 }
             }
@@ -28,7 +28,7 @@ pipeline {
         stage ('Test') {
             steps {
                 script {
-                    try{
+                    try {
                         //Switching to docker directory
                         dir('project-01') {
                             dir('docker') {
@@ -54,7 +54,7 @@ pipeline {
         stage ('Deploy') {
             steps {
                 script {
-                    try{
+                    try {
                         //Switching to ansible directory
                         dir('project-01') {
                             dir('ansible') {
