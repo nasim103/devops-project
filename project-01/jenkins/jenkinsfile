@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage ('checkout') {
             steps {
-                git 'https://github.com/nasim103/devops-project.git'
+                git branch: 'main', url: 'https://github.com/nasim103/devops-project.git'
             }
         }
 
