@@ -10,20 +10,42 @@ pipeline {
 
         stage ('Build') {
             steps {
-                cd project-01/docker
-                sh 'docker build -t my-nginx:latest .'
+                script {
+                    try{
+                        //Switching to docker directory
+                        dir('project-01') {
+                            dir('docker') {
+                                sh 'echo Building'
+                                sh 'docker build -t my-nginx:latest .'
+                            }
+                        }       
+                        
+                    }
+                }
             }
         }
 
         stage ('Test') {
             steps {
-                cd project-01/docker
-                sh 'docker run --rm my-nginx:latest nginx -t'
+                script {
+                    try{
+                        //Switching to docker directory
+                        dir('project-01') {
+                            dir('docker') {
+                                sh 'echo Building'
+                               sh 'docker run --rm my-nginx:latest nginx -t'
+                            }
+                        }       
+                        
+                    }
+                }
+            
             }
+ 
         }
+        
         stage ('push') {
             steps {
-                cd project-01/docker
                 sh 'docker tag my-nginx:latest nasim1039/my-nginx:latest'
                 sh 'docker push nasim1039/my-nginx:latest'
             }
@@ -31,10 +53,21 @@ pipeline {
 
         stage ('Deploy') {
             steps {
-                sshagent(['devops']) {
-                    cd project-01/ansible
-                    sh 'ansible-playbook  deploy.yml'
+                script {
+                    try{
+                        //Switching to ansible directory
+                        dir('project-01') {
+                            dir('ansible') {
+                                sshagent(['devops']) {
+                                   sh 'ansible-playbook  deploy.yml'
+                                }
+                                
+                            }
+                        }       
+                        
+                    }
                 }
+                
             }
         }
 
