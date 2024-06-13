@@ -51,7 +51,7 @@ resource "aws_subnet" "private-subnet2" {
 resource "aws_internet_gateway" "project1-igw" {
     vpc_id = aws_vpc.project1.id
     tags = {
-      Name = project1-igw 
+      Name = "project1-igw"
     }
   
 }
