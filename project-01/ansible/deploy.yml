@@ -16,6 +16,7 @@
        docker_image:
          name: nasim1039/my-nginx:latest
          state: present
+         source: pull
      - name: Start the docker container
        docker_container:
         name: nginx
