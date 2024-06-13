@@ -3,7 +3,7 @@ resource "aws_alb" "project1-alb" {
     internal = false
     load_balancer_type = "application"
     security_groups = [ aws_security_group.project1-sg.id ]
-    subnets = [ aws_subnet.public-subnet1.id ]
+    subnets = [ aws_subnet.public-subnet1.id, aws_subnet.public-subnet2.id ]
   
 }
 
