@@ -27,6 +27,7 @@ pipeline {
                         // Switching to docker directory
                         dir('docker') {
                             sh 'echo Building'
+                            sh 'ls -l'
                             sh 'docker build -t my-nginx:latest .'
                         }
                     } catch (Exception e) {
