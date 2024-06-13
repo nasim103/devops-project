@@ -82,7 +82,7 @@ pipeline {
                     try {
                         // Switching to ansible directory
                         dir('project-01/ansible') {
-                            sshagent(['devops']) {
+                            sshagent(['root']) {
                                 sh 'ansible-playbook deploy.yml'
                             }
                         }
