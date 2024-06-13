@@ -25,7 +25,7 @@ pipeline {
                 script {
                     try {
                         // Switching to docker directory
-                        dir('docker') {
+                        dir('project-01/docker') {
                             sh 'echo Building'
                             sh 'ls -l'
                             sh 'docker build -t my-nginx:latest .'
@@ -44,7 +44,7 @@ pipeline {
                 script {
                     try {
                         // Switching to docker directory
-                        dir('docker') {
+                        dir('project-01/docker') {
                             sh 'echo Testing'
                             sh 'docker run --rm my-nginx:latest nginx -t'
                         }
@@ -81,7 +81,7 @@ pipeline {
                 script {
                     try {
                         // Switching to ansible directory
-                        dir('ansible') {
+                        dir('project-01/ansible') {
                             sshagent(['devops']) {
                                 sh 'ansible-playbook deploy.yml'
                             }
