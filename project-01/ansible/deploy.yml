@@ -1,6 +1,6 @@
 ---
  - name: Deploy nginx on docker
-   hosts: webserver
+   hosts: all
    become: yes
    tasks:
      - name: Ensure Docker is installed
