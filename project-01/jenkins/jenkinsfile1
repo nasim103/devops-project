@@ -83,7 +83,7 @@ pipeline {
                         // Switching to ansible directory
                         dir('project-01/ansible') {
                             sshagent(credentials:['75179a70-96c4-4432-8da1-8de671aef93d']) {
-                                sh 'ansible-playbook deploy.yml -i aws_ec2'
+                                sh 'ansible-playbook deploy.yml -i aws_ec2.yml'
                             }
                         }
                     } catch (Exception e) {
