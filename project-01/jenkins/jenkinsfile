@@ -11,7 +11,7 @@ pipeline {
         stage ('Build') {
             steps {
                 cd project-01/docker
-                sh 'docker -t my-nginx:latest .'
+                sh 'docker build -t my-nginx:latest .'
             }
         }
 
