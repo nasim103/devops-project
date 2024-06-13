@@ -14,13 +14,12 @@
          enabled: yes
      - name: Pull latest Docker image
        docker_image:
-         name: nasim1039/my-nginx
-         tag: latest
+         name: nasim1039/my-nginx:latest
          state: present
      - name: Start the docker container
        docker_container:
         name: nginx
-        image: nasim1039/my-nginx
+        image: nasim1039/my-nginx:latest
         state: started
         restart_policy: always
         ports:
