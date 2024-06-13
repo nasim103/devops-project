@@ -10,20 +10,20 @@ pipeline {
 
         stage ('Build') {
             steps {
-                cd docker
+                cd project-01/docker
                 sh 'docker -t my-nginx:latest .'
             }
         }
 
         stage ('Test') {
             steps {
-                cd docker
+                cd project-01/docker
                 sh 'docker run --rm my-nginx:latest nginx -t'
             }
         }
         stage ('push') {
             steps {
-                cd docker
+                cd project-01/docker
                 sh 'docker tag my-nginx:latest nasim1039/my-nginx:latest'
                 sh 'docker push nasim1039/my-nginx:latest'
             }
@@ -32,7 +32,7 @@ pipeline {
         stage ('Deploy') {
             steps {
                 sshagent(['devops']) {
-                    cd docker
+                    cd project-01/ansible
                     sh 'ansible-playbook  deploy.yml'
                 }
             }
