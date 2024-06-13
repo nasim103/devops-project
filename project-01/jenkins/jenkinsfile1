@@ -1,0 +1,110 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_CREDENTIALS_ID = 'e2664105-b64b-4ea9-bb6e-8c9346a71fa8' // Set your Docker Hub credentials ID here
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    try {
+                        git branch: 'main', url: 'https://github.com/nasim103/devops-project.git'
+                    } catch (Exception e) {
+                        echo "Error during Git checkout: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error("Stopping build.")
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    try {
+                        // Switching to docker directory
+                        dir('project-01/docker') {
+                            sh 'echo Building'
+                            sh 'docker build -t my-nginx:latest .'
+                        }
+                    } catch (Exception e) {
+                        echo "Error during build: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error("Stopping build.")
+                    }
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    try {
+                        // Switching to docker directory
+                        dir('project-01/docker') {
+                            sh 'echo Testing'
+                            sh 'docker run --rm my-nginx:latest nginx -t'
+                        }
+                    } catch (Exception e) {
+                        echo "Error during test: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error("Stopping build.")
+                    }
+                }
+            }
+        }
+
+        stage('Push') {
+            steps {
+                script {
+                    try {
+                        withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                            sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+                            sh 'docker tag my-nginx:latest nasim1039/my-nginx:latest'
+                            sh 'docker push nasim1039/my-nginx:latest'
+                            sh 'docker logout'
+                        }
+                    } catch (Exception e) {
+                        echo "Error during Docker push: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error("Stopping build.")
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    try {
+                        // Switching to ansible directory
+                        dir('project-01/ansible') {
+                            sshagent(['devops']) {
+                                sh 'ansible-playbook deploy.yml'
+                            }
+                        }
+                    } catch (Exception e) {
+                        echo "Error during deployment: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error("Stopping build.")
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up...'
+            cleanWs()
+        }
+        success {
+            echo 'Deployment completed successfully.'
+        }
+        failure {
+            echo 'Deployment failed.'
+        }
+    }
+}
