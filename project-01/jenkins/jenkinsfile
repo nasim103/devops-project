@@ -31,7 +31,7 @@ pipeline {
 
         stage ('Deploy') {
             steps {
-                sshagent(['project']) {
+                sshagent(['id_rsa']) {
                     sh 'ansible-playbook -i inventory/hosts deploy.yml'
                 }
             }
