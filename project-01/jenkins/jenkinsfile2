@@ -1,0 +1,134 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_CREDENTIALS_ID = 'e2664105-b64b-4ea9-bb6e-8c9346a71fa8' // Set your Docker Hub credentials ID here
+        SONARQUBE_SERVER_URL = 'http://192.168.48.141/' // Replace with your SonarQube server URL
+        SONARQUBE_TOKEN = credentials('sonarqube') // Replace with your SonarQube token credentials ID
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    try {
+                        git branch: 'main', url: 'https://github.com/nasim103/devops-project.git'
+                    } catch (Exception e) {
+                        echo "Error during Git checkout: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error("Stopping build.")
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    try {
+                        // Switching to docker directory
+                        dir('project-01/docker') {
+                            sh 'echo Building'
+                            sh 'ls -l'
+                            sh 'docker build -t my-nginx:latest .'
+                        }
+                    } catch (Exception e) {
+                        echo "Error during build: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error("Stopping build.")
+                    }
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    try {
+                        // Switching to docker directory
+                        dir('project-01/docker') {
+                            sh 'echo Testing'
+                            sh 'docker run --rm my-nginx:latest nginx -t'
+                        }
+                    } catch (Exception e) {
+                        echo "Error during test: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error("Stopping build.")
+                    }
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    try {
+                        withSonarQubeEnv('MySonarQubeServer') { // 'SonarQube' is the name of the SonarQube installation in Jenkins
+                            sh """
+                            sonar-scanner \
+                            -Dsonar.projectKey=project2 \
+                            -Dsonar.sources=./project-01 \
+                            -Dsonar.host.url=${SONARQUBE_SERVER_URL} \
+                            -Dsonar.login=${SONARQUBE_TOKEN}
+                            """
+                        }
+                    } catch (Exception e) {
+                        echo "Error during SonarQube analysis: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error("Stopping build.")
+                    }
+                }
+            }
+        }
+
+        stage('Push') {
+            steps {
+                script {
+                    try {
+                        withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                            sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+                            sh 'docker tag my-nginx:latest nasim1039/my-nginx:latest'
+                            sh 'docker push nasim1039/my-nginx:latest'
+                        }
+                    } catch (Exception e) {
+                        echo "Error during Docker push: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error("Stopping build.")
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    try {
+                        // Switching to ansible directory
+                        dir('project-01/ansible') {
+                            sshagent(credentials: ['75179a70-96c4-4432-8da1-8de671aef93d']) {
+                                sh 'ansible-playbook deploy.yml -i aws_ec2.yml'
+                            }
+                        }
+                    } catch (Exception e) {
+                        echo "Error during deployment: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error("Stopping build.")
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up...'
+            cleanWs()
+        }
+        success {
+            echo 'Deployment completed successfully.'
+        }
+        failure {
+            echo 'Deployment failed.'
+        }
+    }
+}
