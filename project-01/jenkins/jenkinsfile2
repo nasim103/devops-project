@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_CREDENTIALS_ID = 'e2664105-b64b-4ea9-bb6e-8c9346a71fa8' // Set your Docker Hub credentials ID here
-        SONARQUBE_SERVER_URL = 'http://192.168.48.141/' // Replace with your SonarQube server URL
+        SONARQUBE_SERVER_URL = 'http://192.168.48.141:9000/' // Replace with your SonarQube server URL
         SONARQUBE_TOKEN = credentials('sonarqube') // Replace with your SonarQube token credentials ID
     }
 
