@@ -15,7 +15,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                dir('maven-samples/single-module') {
+                dir('mvn') {
                     sh 'mvn clean install'
                 }
             }
