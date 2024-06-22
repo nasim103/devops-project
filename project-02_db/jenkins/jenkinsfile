@@ -21,7 +21,7 @@ pipeline {
                         //switching to Docker directory
                         dir('project-02_db/docker')
                         sh 'ls -l'
-                        sh 'Echo Building Docker Image'
+                        sh 'echo Building Docker Image'
                         sh 'docker build -t my-mysql:latest .'
                     }
                 }
