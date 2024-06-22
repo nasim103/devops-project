@@ -7,3 +7,7 @@ resource "aws_instance" "Project2-ec2" {
     
   
 }
+output "publicip" {
+    value = aws_instance.Project2-ec2.public_ip
+  
+}
