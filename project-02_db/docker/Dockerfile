@@ -1,4 +1,4 @@
-FROM mysql:8.5.37
+FROM mysql:latest
 ENV MYSQL_ROOT_PASSWORD=admin123
 ENV MYSQL_DATABASE=mydatabase
 ENV MYYSQL_USER=admin
