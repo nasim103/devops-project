@@ -8,37 +8,51 @@ pipeline {
     }
 
     stages {
-        stage('checkout') {
+        stage('Checkout') {
             steps {
-                git branch: 'main' , url: 'https://github.com/nasim103/devops-project.git'
+                git branch: 'main', url: 'https://github.com/nasim103/devops-project.git'
             }
         }
 
-        stage('Build DOcker Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
                     try {
-                        //switching to Docker directory
-                        dir('project-02_db/docker')
-                        sh 'ls -l'
-                        sh 'echo Building Docker Image'
-                        sh 'docker build -t my-mysql:latest .'
+                        // Switching to Docker directory
+                        dir('project-02_db/docker') {
+                            sh 'ls -l'
+                            sh 'echo Building Docker Image'
+                            sh 'docker build -t my-mysql:latest .'
+                        }
+                    } catch (Exception e) {
+                        echo "Error during build: ${e}"
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    } finally {
+                        echo "Build stage finished"
                     }
                 }
-
             }
         }
 
-        stage('test') {
+        stage('Test') {
             steps {
                 script {
-                    sh 'echo Testing....'
-                    sh 'docker run --rm my-mysql:latest mysql -t'
+                    try {
+                        sh 'echo Testing....'
+                        sh 'docker run --rm my-mysql:latest mysql -t'
+                    } catch (Exception e) {
+                        echo "Error during test: ${e}"
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    } finally {
+                        echo "Test stage finished"
+                    }
                 }
             }
         }
 
-        stage('sonarqube Analysis') {
+        stage('SonarQube Analysis') {
             steps {
                 script {
                     try {
@@ -51,7 +65,12 @@ pipeline {
                             -Dsonar.login=${SONARQUBE_TOKEN}
                             """
                         }
-                
+                    } catch (Exception e) {
+                        echo "Error during SonarQube analysis: ${e}"
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    } finally {
+                        echo "SonarQube analysis finished"
                     }
                 }
             }
@@ -61,17 +80,21 @@ pipeline {
             steps {
                 script {
                     try {
-                     withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
-                        sh 'docker tag my-mysql:latest nasim1039/my-mysql:latest'
-                        sh 'docker push nasim1039/my-mysql:latest'
-
-                    }
-                   
+                        withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                            sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+                            sh 'docker tag my-mysql:latest nasim1039/my-mysql:latest'
+                            sh 'docker push nasim1039/my-mysql:latest'
+                            sh 'docker logout'
+                        }
+                    } catch (Exception e) {
+                        echo "Error during Docker push: ${e}"
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    } finally {
+                        echo "Push stage finished"
                     }
                 }
             }
-
         }
 
         stage('Deploy on EC2') {
@@ -79,30 +102,32 @@ pipeline {
                 script {
                     try {
                         dir('project-02_db/ansible') {
-                             sshagent(['75179a70-96c4-4432-8da1-8de671aef93d']) {
+                            sshagent(['75179a70-96c4-4432-8da1-8de671aef93d']) {
                                 sh 'ansible-playbook deploy.yml -i aws_ec2.yml'
+                            }
                         }
-                    }
-                    
-
-
+                    } catch (Exception e) {
+                        echo "Error during deployment: ${e}"
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    } finally {
+                        echo "Deploy stage finished"
                     }
                 }
             }
         }
-                 
-        
     }
+
     post {
         always {
-            echo 'cleaning up...'
-            cleanWs
+            echo 'Cleaning up...'
+            cleanWs()
         }
         success {
-            echo 'Deployment successfully complated'
+            echo 'Deployment successfully completed'
         }
         failure {
-            echo 'Deployment Failed'
+            echo 'Deployment failed'
         }
     }
 }
