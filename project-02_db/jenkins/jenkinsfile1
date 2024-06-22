@@ -36,14 +36,25 @@ pipeline {
             }
         }
 
-        stage('Test Docker Image') {
+         stage('Test Docker Image') {
             steps {
                 script {
-                    sh 'echo Testing....'
-                    sh 'docker run --rm my-mysql:latest mysql -t'
+                    // Start the MySQL container in detached mode
+                    sh 'docker run -d --name test-mysql my-mysql:latest'
+                    
+                    // Wait for the MySQL server to start
+                    sleep(time: 30, unit: "SECONDS")
+                    
+                    // Test the MySQL server
+                    sh 'docker exec test-mysql mysql -u root -padmin123 -e "SHOW DATABASES;"'
+
+                    // Stop and remove the MySQL container
+                    sh 'docker stop test-mysql'
+                    sh 'docker rm test-mysql'
                 }
             }
         }
+
 
         stage('SonarQube Analysis') {
             steps {
