@@ -1,6 +1,7 @@
 resource "aws_db_instance" "project2-db" {
     identifier = "mydatabase"
     engine = "mysql"
+    engine_version    = "5.7.35"
     instance_class = "db.t2.micro"
     allocated_storage = "20"
     username = "admin"
