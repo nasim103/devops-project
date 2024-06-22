@@ -14,6 +14,6 @@ resource "aws_db_instance" "project2-db" {
   
 }
 output "aws-db-dns" {
-    value = aws_db_instance.project2-db.domain_dns_ips
+    value = aws_db_instance.project2-db.endpoint
   
 }
