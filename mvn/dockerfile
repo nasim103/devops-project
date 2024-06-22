@@ -1,0 +1,42 @@
+# Use the official Jenkins base image
+FROM jenkins/jenkins:lts
+
+# Switch to root user to install packages
+USER root
+
+# Install Docker
+RUN apt-get update && \
+    apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && \
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && \
+    apt-get update && \
+    apt-get install -y docker-ce docker-ce-cli containerd.io
+
+
+
+# Install Sonar Scanner
+RUN wget -O /opt/sonar-scanner-cli.zip wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+&& \
+    unzip /opt/sonar-scanner-cli.zip -d /opt && \
+    mv /opt/sonar-scanner-4.8.0.2856-linux /opt/sonar-scanner && \
+    rm /opt/sonar-scanner-cli.zip && \
+    ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/bin/sonar-scanner
+
+# Configure environment variables for Sonar Scanner
+ENV SONAR_SCANNER_HOME=/opt/sonar-scanner
+ENV PATH=${SONAR_SCANNER_HOME}/bin:${PATH}
+
+# Add Jenkins user to Docker group
+RUN usermod -aG docker jenkins
+
+# Switch back to Jenkins user
+USER jenkins
+
+# Install necessary Jenkins plugins
+RUN /usr/local/bin/install-plugins.sh docker-plugin
+
+# Expose Docker socket
+VOLUME /var/run/docker.sock
+
+# Start Jenkins
+CMD ["bash", "-c", "java -jar /usr/share/jenkins/jenkins.war"]
