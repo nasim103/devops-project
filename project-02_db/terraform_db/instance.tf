@@ -4,13 +4,6 @@ resource "aws_instance" "Project2-ec2" {
     vpc_security_group_ids = [ aws_security_group.Project2-ec2.id ]
     subnet_id = aws_subnet.public_subnet1.id
     key_name = aws_key_pair.project2-ec2.key_name
-    user_data = <<-EOF
-      #!/bin/bash
-      yum update
-      yum install docker.io docker -y
-      systemctl restart docker
-      systemctl enable docker
-      EOF
     
   
 }

@@ -1,0 +1,108 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS_ID = credentials('e2664105-b64b-4ea9-bb6e-8c9346a71fa8')
+        SONARQUBE_SERVER_URL = 'http://192.168.48.141:9000/'
+        SONARQUBE_TOKEN = credentials('sonarqube')
+    }
+
+    stages {
+        stage('checkout') {
+            steps {
+                git branch: 'main' , url: 'https://github.com/nasim103/devops-project.git'
+            }
+        }
+
+        stage('Build DOcker Image') {
+            steps {
+                script {
+                    try {
+                        //switching to Docker directory
+                        dir('project-02_db/docker')
+                        sh 'ls -l'
+                        sh 'Echo Building Docker Image'
+                        sh 'docker build -t my-mysql:latest .'
+                    }
+                }
+
+            }
+        }
+
+        stage('test') {
+            steps {
+                script {
+                    sh 'echo Testing....'
+                    sh 'docker run --rm my-mysql:latest mysql -t'
+                }
+            }
+        }
+
+        stage('sonarqube Analysis') {
+            steps {
+                script {
+                    try {
+                        withSonarQubeEnv('MySonarQubeServer') {
+                            sh """
+                            sonar-scanner \
+                            -Dsonar.projectKey=project3 \
+                            -Dsonar.sources=./project-02_db \
+                            -Dsonar.host.url=${SONARQUBE_SERVER_URL} \
+                            -Dsonar.login=${SONARQUBE_TOKEN}
+                            """
+                        }
+                
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    try {
+                     withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+                        sh 'docker tag my-mysql:latest nasim1039/my-mysql:latest'
+                        sh 'docker push nasim1039/my-mysql:latest'
+
+                    }
+                   
+                    }
+                }
+            }
+
+        }
+
+        stage('Deploy on EC2') {
+            steps {
+                script {
+                    try {
+                        dir('project-02_db/ansible') {
+                             sshagent(['75179a70-96c4-4432-8da1-8de671aef93d']) {
+                                sh 'ansible-playbook deploy.yml -i aws_ec2.yml'
+                        }
+                    }
+                    
+
+
+                    }
+                }
+            }
+        }
+                 
+        
+    }
+    post {
+        always {
+            echo 'cleaning up...'
+            cleanWs
+        }
+        success {
+            echo 'Deployment successfully complated'
+        }
+        failure {
+            echo 'Deployment Failed'
+        }
+    }
+}

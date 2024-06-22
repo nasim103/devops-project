@@ -1,0 +1,28 @@
+---
+ - name: Pull and deploy MYSQL database on EC2 
+   hosts: all
+   become: true
+   tasks:
+      - name: Ensure docker is installed
+        dnf:
+          name: docker.io
+          state: present
+          
+      - name: Ensure docker is running
+        service:
+           name: docker
+           state: started
+           enabled: yes
+
+      - name: Pull the mysql image
+        docker_image: 
+          name: nasim1039/my-mysql 
+          source: pull 
+      - name: Run myql container 
+        docker_container:
+          name: mysql-container
+          image: nasim1039/my-mysql
+          state: started
+          restart_policy: always
+          ports:
+            - "3306:3306"
