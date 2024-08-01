@@ -1,0 +1,102 @@
+pipeline {
+    agent any
+    
+    environment {
+        PROJECT_A_REPO = 'git@PROJECT-A.git'
+        PROJECT_B_REPO = 'git@PROJECT-B.git'
+        PROJECT_C_REPO = 'git@PROJECT-C.git'
+
+        PROJECT_A_BRANCH = 'main'
+        PROJECT_B_BRANCH = 'main'
+        PROJECT_C_BRANCH = 'main'
+    }
+
+    stages {
+            stage('Clone Repository') {
+              parllel {
+                stage('Clone Repository A') { 
+                  steps {
+                    git branch: "${PROJECT_A_BRANCH}", url: "${PROJECT_A_REPO}"
+                  }
+                }
+
+                stage('Clone Repository B') {
+                  steps {
+                      git branch: "${PROJECT_B_BRANCH}", url: "${PROJECT_B_REPO}"   
+                  }
+                }
+               
+                stage('CLone Repository C') {
+                 steps {
+                    git branch: "${PROJECT_C_BRANCH}", url: "${PROJECT_C_REPO}"
+                 }
+                }
+
+              }
+            
+            stage('Build Project') {
+                parllel {
+                    stage('Build Project A')
+                      steps {
+                        dir('ProjectA') {
+                            sh 'maven create build'
+                        }
+                          
+                      }
+                    stage('Build Project B') {
+                        steps {
+                            dir('Project B') {
+                                sh 'maven create build'
+                            }
+                        }
+                    }
+
+                    stage('Build Project C') {
+                        steps {
+                            dir('Project C') {
+                                sh 'maven create build'
+                            }
+                        }
+                    }
+                }
+            }
+
+            stage('Test Project') {
+                parllel {
+                    stage('Test Project A') {
+                        steps {
+                            dir('Project A') {
+                                sh 'maven test'
+                            }
+                        }
+                    }
+                    stage('Test Project B') {
+                        steps {
+                            dir('Project B') {
+                                sh 'maven test'
+                            }
+                        }
+                    }
+                    
+                    stage('Test Project C') {
+                        steps {
+                            dir('Project C') {
+                                sh 'maven test'
+                            }
+                        }
+                    }
+                }
+            }   
+        }
+    }
+    post {
+        success {
+            echo 'All Project Built and tested successfully'
+            // Notify Success (e.g Slack, Email)
+        }
+        faliure {
+            echo 'One or more project failed to build and test'
+            // Notify Failure (e.g , slack, email)
+        }
+    }
+}

@@ -1,0 +1,94 @@
+pipeline {
+    agent any
+
+    environment {
+        PROJECT_X_REPO = 'git@projectx.git'
+        PROJECT_Y_REPO = 'git@projecty.git'
+        PORJECT_Z_REPO = 'git@projectz.git'
+        PROJECT_X_BRACNH = 'main'
+        PROJECT_Y_BRANCH = 'main'
+        PROJECT_Z_BRANCH = 'main'
+    }
+
+    stages {
+        stage('CLONE REPOSITORY') {
+            parllel {
+                stage('CLONE PROJECT X') {
+                    steps {
+                        git brach: "${PROJECT_X_BRANCH}", url: "${PROJECT_X_BRANCH}"
+                    }
+                }
+                stage('CLONE REPOSITORY Y') {
+                    steps {
+                        git brach: "${PROJECT_X_BRANCH}", url: "${PROJECT_X_REPO}"
+                    }
+                }
+                stage('CLONE REPOSITORY Z') {
+                    steps {
+                        git branch: "${PROJECT_Z_BRANCH}", url: "${PROJECT_Z_REPO}"
+                    }
+                }
+            }
+        }
+        stage('Build Project') {
+            parllel {
+                stage('Build Project X') {
+                    steps {
+                        dir('PROJECTX') {
+                            sh 'maven build '
+                        }
+                    }
+                }
+                stage('Build Project Y') {
+                    steps {
+                        dir('PROJETY') {
+                            sh 'maven build'
+                        }
+                    }
+                }
+                stage('Build Project Z') {
+                    steps {
+                        dir('PROJECTZ') {
+                            sh 'maven build'
+                        }
+                    }
+                }
+            }
+        }
+        stage('Test Projet') {
+            parllel {
+                satge('Test Projext X') {
+                    steps {
+                        dir('ProjectX') {
+                            sh 'maven test'
+                        }
+                    }
+                }
+                stage('Test Projext Y') {
+                    steps {
+                        dir('ProjextY') {
+                            sh 'maven test'
+                        }
+                    }
+                }
+                stage('Test Projext Z') {
+                    steps {
+                        dir('ProjextZ') {
+                            sh 'maven test'
+                        }
+                    }
+                }
+            }
+        }
+    }
+    post {
+        success {
+            echo 'All Project Build and tested successfully'
+            // Notifying to Developper using (e.g , slack, Email)
+        }
+        failure {
+            echo 'One or more Project failed to Build and test'
+            //Notifying to delvelopper using (e.g, slack, Email)
+        }
+    }
+}

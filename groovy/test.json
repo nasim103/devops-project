@@ -1,0 +1,25 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "S3:GetObject",
+                "S3:ListBucket"
+            ],
+            "Resource": [
+             "arn:aws:S3:::bucket-name",
+             "arn:aws:s3:::bucket23"
+            ],
+            "Principal": {
+                "AWS": "arn:aws:iam:123455:user/exaple-user:"
+            },
+            "Condition": {
+                "IPaddress": {
+                    "aws:SourceIP": "192.169.0.0/24"
+                }
+            }
+
+        }
+    ]
+}
