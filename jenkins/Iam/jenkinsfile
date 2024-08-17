@@ -6,6 +6,7 @@ pipeline {
             steps{
                 slackSend channel: '#jenkins', message: 'Checking out the Code from SCM'
                 git branch: 'main', url: 'https://github.com/nasim103/terraform.git'
+                slackSend channel: '#jenkins', message: 'Successfully Check out the Code from SCM'
             }
 
             }
