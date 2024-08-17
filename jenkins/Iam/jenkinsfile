@@ -12,10 +12,22 @@ pipeline {
             }
             stage("Initialize terraform") {
             steps{
-                slackSend channel: '#jenkins', message: 'Starting Build'
+                slackSend channel: '#jenkins', message: 'Starting Initializating terraform'
                 dir('build7-iamuser') {
                     sh 'terraform init'
                 }    
+                
+            }
+
+            }
+            stage("Build terraform") {
+            steps{
+                slackSend channel: '#jenkins', message: 'Starting Build terraform'
+                dir('build7-iamuser') {
+                    withAWS(credentials: 'aws devops', region: 'us-east-1') {
+                        sh 'terraform apply -auto-approve'
+                    }   
+                }   
                 
             }
 
@@ -30,12 +42,12 @@ pipeline {
         }
         success{
             echo "========pipeline executed successfully ========"
-            echo "========pipeline executed successfully ========"
+            slackSend channel: "#jenkins', message: 'IAM built is successfully complated."
         }
         failure{
             echo "========pipeline execution failed========"
-            echo "========pipeline execution failed========"
-            echo "========pipeline execution failed========"
+           slackSend channel: "#jenkins', message: 'IAM built is Failed."
+            
         }
     }
 }
