@@ -1,0 +1,25 @@
+pipeline{
+    agent any
+
+    stages{
+        stage("Checkout"){
+            steps{
+                slackSend channel: '#jenkins', message: 'Checking out the Code from SCM'
+                git branch: 'main', url: 'https://github.com/nasim103/terraform.git'
+            }
+
+            }
+        }
+    }
+    post{
+        always{
+            echo "========always========"
+        }
+        success{
+            echo "========pipeline executed successfully ========"
+        }
+        failure{
+            echo "========pipeline execution failed========"
+        }
+    }
+}k
