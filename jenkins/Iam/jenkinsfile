@@ -24,7 +24,7 @@ pipeline {
             steps{
                 slackSend channel: '#jenkins', message: 'Starting Build terraform'
                 dir('build7-iamuser') {
-                    withAWS(credentials: 'aws devops', region: 'us-east-1') {
+                    withAWS(credentials: 'myawsid', region: 'us-east-1') {
                         sh 'terraform apply -auto-approve'
                     }   
                 }   
@@ -42,11 +42,11 @@ pipeline {
         }
         success{
             echo "========pipeline executed successfully ========"
-            slackSend channel: "#jenkins', message: 'IAM built is successfully complated."
+            slackSend channel: "'#jenkins', message: 'IAM built is successfully complated.'"
         }
         failure{
             echo "========pipeline execution failed========"
-           slackSend channel: "#jenkins', message: 'IAM built is Failed."
+           slackSend channel: "'#jenkins', message: 'IAM built is Failed.'"
             
         }
     }
