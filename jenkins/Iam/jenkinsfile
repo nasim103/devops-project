@@ -10,6 +10,16 @@ pipeline {
             }
 
             }
+            stage("Initialize terraform") {
+            steps{
+                slackSend channel: '#jenkins', message: 'Starting Build'
+                dir('build7-iamuser') {
+                    sh 'terraform init'
+                }    
+                
+            }
+
+            }
         }
     
     
