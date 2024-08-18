@@ -44,9 +44,9 @@ pipeline {
                         script {
                             slackSend channel: '#jenkins', message: 'terraform Plan'
                             if (params.ACTION == 'apply') {
-                                sh 'terraform plan -out=tfplan'
+                                sh 'terraform plan'
                             } else if (params.ACTION == 'destroy') {
-                                sh 'terraform plan -destroy -out=tfplan'
+                                sh 'terraform plan -destroy '
                             }
                         }
                     }
@@ -70,11 +70,11 @@ pipeline {
                         script {
                             slackSend channel: '#jenkins', message: 'Building Terraform'
                             if (params.ACTION == 'apply') {
-                                sh 'terraform apply -auto-approve tfplan'
+                                sh 'terraform apply -auto-approve'
                             } else if (params.ACTION == 'destroy') {
                                 input message: 'Are you sure you want to destroy the infrastructure?', ok: 'Destroy'
                                 slackSend channel: '#jenkins', message: 'Destroying Terraform '
-                                sh 'terraform apply -auto-approve tfplan'
+                                sh 'terraform apply -auto-approve'
                             }
                         }
                     }
