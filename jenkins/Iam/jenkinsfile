@@ -1,5 +1,12 @@
 pipeline {
     agent any
+    parameters {
+        choice(
+            name: 'ACTION'
+            choices: ['apply', 'destroy']
+            description: 'Choices wheather to apply(build) or destroy terraform infrastructure'
+        )
+    }
 
     stages{
         stage("Checkout") {
@@ -21,11 +28,22 @@ pipeline {
 
             }
             stage("Build terraform") {
-            steps{
-                slackSend channel: '#jenkins', message: 'Starting Build terraform'
+            steps {
+                slackSend channel: '#jenkins', message: 'Starting Build/Destroy terraform'
                 dir('build7-iamuser') {
                     withAWS(credentials: 'myawsid', region: 'us-east-1') {
-                        sh 'terraform apply -auto-approve'
+                        script {
+                            if (params.ACTION == 'apply') {
+                                sh 'terraform apply -auto-approve'
+                            }
+                            else if (params.ACTION == 'destroy') {
+                                sh 'terraform destroy -auto-approve'
+
+                            }
+                              
+
+                        }
+                        
                     }   
                 }   
                 
