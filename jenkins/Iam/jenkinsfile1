@@ -1,0 +1,97 @@
+pipeline {
+    agent any
+
+    options {
+        timeout(time: 30, unit: 'MINUTES')  // Sets a timeout for the pipeline
+        timestamps()                        // Adds timestamps to the console output
+    }
+
+    environment {
+        TERRAFORM_DIR = 'build7-iamuser/'         // Directory where Terraform files are stored
+    }
+
+    parameters {
+        choice(
+            name: 'ACTION',
+            choices: ['apply', 'destroy'],
+            description: 'Choose whether to apply (build) or destroy the Terraform infrastructure'
+        )
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                slackSend channel: '#jenkins', message: 'Checking out the Code from SCM'
+                git branch: 'main', url: 'https://github.com/nasim103/terraform.git'
+                slackSend channel: '#jenkins', message: 'Checking out the Code from SCM Completed'
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                withAWS(credentials: 'myawsid', region: 'us-east-1') {
+                    dir("${TERRAFORM_DIR}") {
+                        sh 'terraform init'
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                withAWS(credentials: 'myawsid', region: 'us-east-1') {
+                    dir("${TERRAFORM_DIR}") {
+                        script {
+                            slackSend channel: '#jenkins', message: 'terraform Plan'
+                            if (params.ACTION == 'apply') {
+                                sh 'terraform plan -out=tfplan'
+                            } else if (params.ACTION == 'destroy') {
+                                sh 'terraform plan -destroy -out=tfplan'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Manual Approval') {
+            when {
+                expression { return params.ACTION == 'apply' }
+            }
+            steps {
+                input message: 'Approve Terraform Apply?', ok: 'Apply'
+            }
+        }
+
+        stage('Terraform Apply/Destroy') {
+            steps {
+                withAWS(credentials: 'myawsid', region: 'us-east-1') {
+                    dir("${TERRAFORM_DIR}") {
+                        script {
+                            slackSend channel: '#jenkins', message: 'Building Terraform'
+                            if (params.ACTION == 'apply') {
+                                sh 'terraform apply -auto-approve tfplan'
+                            } else if (params.ACTION == 'destroy') {
+                                input message: 'Are you sure you want to destroy the infrastructure?', ok: 'Destroy'
+                                slackSend channel: '#jenkins', message: 'Destroying Terraform '
+                                sh 'terraform apply -auto-approve tfplan'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs() // Clean the workspace after the build
+        }
+        success {
+            echo "Terraform ${params.ACTION} completed successfully."
+        }
+        failure {
+            echo "Terraform ${params.ACTION} failed. Please check the logs."
+        }
+    }
+}
