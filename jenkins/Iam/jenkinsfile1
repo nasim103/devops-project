@@ -89,9 +89,9 @@ pipeline {
         }
         success {
             echo "Terraform ${params.ACTION} completed successfully."
-            slackSend channel: '#jenkins', message: 'Build Successfully Completed'
+            slackSend channel: '#jenkins', message: 'Build  Completed Successfully'
         }
-        failure {
+        failure { 
             echo "Terraform ${params.ACTION} failed. Please check the logs."
              slackSend channel: '#jenkins', message: 'Build Failed'
         }
