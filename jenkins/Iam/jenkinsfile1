@@ -74,7 +74,7 @@ pipeline {
                             } else if (params.ACTION == 'destroy') {
                                 input message: 'Are you sure you want to destroy the infrastructure?', ok: 'Destroy'
                                 slackSend channel: '#jenkins', message: 'Destroying Terraform '
-                                sh 'terraform apply -auto-approve'
+                                sh 'terraform destroy -auto-approve'
                             }
                         }
                     }
