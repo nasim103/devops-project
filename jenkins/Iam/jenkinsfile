@@ -3,7 +3,7 @@ pipeline {
     parameters {
         choice(
             name: 'ACTION'
-            choices: ['apply', 'destroy']
+            choices: ['apply', 'destroy'],
             description: 'Choices wheather to apply(build) or destroy terraform infrastructure'
         )
     }
