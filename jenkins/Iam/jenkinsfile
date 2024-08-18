@@ -2,7 +2,7 @@ pipeline {
     agent any
     parameters {
         choice(
-            name: 'ACTION'
+            name: 'ACTION',
             choices: ['apply', 'destroy'],
             description: 'Choices wheather to apply(build) or destroy terraform infrastructure'
         )
